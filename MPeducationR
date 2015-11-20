@@ -1,5 +1,6 @@
-# Setting working directory. Paste the location of the file, where you want your output to be saved
+### Setting working directory. Paste the location of the file, where you want your output to be saved
 setwd("C:/Desktop/WD")
+
 
 # Installing relevant packages
 install.packages("Matrix")
@@ -16,19 +17,16 @@ library(devtools)
 library(Matrix)
 library(soc.elite)
 
+
 ### Reading the data
-rel.udd      <- read.csv(file = "C:/Users/Yevgeniy/Documents/GitHub/githubrepository/Social-Network-Analysis-in-R/uddudd.csv", sep = ",", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
+rel.udd      <- read.csv(file = "http://golovchenko.github.io/MPeducation.csv", sep = ",", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
 rel.udd        <- rel.udd[(rel.udd$ORG == "") ==FALSE, ]
 
 ### Adding attributes to nodes
-
 #party
 parti.mat    <- unique(cbind(rel.udd$NAVN, rel.udd$PARTI))
 parti        <- parti.mat[order(parti.mat[,1]), 2]
 
-#education
-udd.mat    <- unique(cbind(rel.udd$NAVN, rel.udd$UDD))
-udd       <- udd.mat[order(udd.mat[,1]), 2]
 
 
 ### Creating an edge affiliation list  
@@ -38,7 +36,6 @@ navn.udd
 ### creating an incidence matrix - also known as case - affiliation matrix
 inc.matrixudd        <- table(navn.udd)
 inc.matrixudd
-
 
 
 ### Creating an individual * individual adjacency matrix 
@@ -60,25 +57,21 @@ write.csv(edgelistudd, file="edgelistudd.csv", fileEncoding = "UTF-8")
 edgelistudd
 
 
-
-
 ### Making the graph
-
-# Choosing layout (Fruchterman Reingld algorithm)
+# Setting the layout (Fruchterman Reingld algorithm)
 lay.org      <- layout.fruchterman.reingold(graph.indudd)
 
 
 # Creating a graph with the color representing the parties and "alpha" representing number of years politicians have been oficially students at institution together
+# don't forget to zoom in ;)
 alleparti  <- graph.plot(graph.indudd,layout=lay.org, text = FALSE, edge.alpha = E(graph.indudd)$weight, edge.color = "darkblue", text.size = 4, vertex.size = 5,  vertex.fill = as.factor(parti)) +
   scale_alpha_continuous(range= c(0.1,0.8)) + scale_fill_manual(values = c("white", "green", "salmon", "red4", "goldenrod1", "lightskyblue", "magenta", "goldenrod4", "red"))
 
-# Creating the graph with the color representing educational background (Categories are in Danish)
-alleudd  <- graph.plot(graph.indudd,layout=lay.org, text = FALSE, edge.alpha = E(graph.indudd)$weight, edge.color = "darkblue", text.size = 4, vertex.size = 5,  vertex.fill = as.factor(udd)) +
-  scale_alpha_continuous(range= c(0.1,0.8)) 
-
+# with labels
+alleparti  <- graph.plot(graph.indudd,layout=lay.org, text = TRUE, edge.alpha = E(graph.indudd)$weight, edge.color = "darkblue", text.size = 4, vertex.size = 5,  vertex.fill = as.factor(parti)) +
+  scale_alpha_continuous(range= c(0.1,0.8)) + scale_fill_manual(values = c("white", "green", "salmon", "red4", "goldenrod1", "lightskyblue", "magenta", "goldenrod4", "red"))
 
 ### Basic network measurements
-
 #degree centrality
 as.matrix(sort(degree(graph.indudd)))
 plot(sort(degree(graph.indudd)))
