@@ -1,0 +1,114 @@
+# Setting working directory. Paste the location of the file, where you want your output to be saved
+setwd("C:/Desktop/WD")
+
+# Installing relevant packages
+install.packages("Matrix")
+install.packages("devtools")
+install.packages("igraph")
+install.packages("ggplot2")
+install.packages("soc.elite")
+
+
+# Loading the packages. Some might require additional packages to load. Please install missing packages if needed
+library(igraph)
+library(ggplot2)
+library(devtools)
+library(Matrix)
+library(soc.elite)
+
+### Reading the data
+rel.udd      <- read.csv(file = "C:/Users/Yevgeniy/Documents/GitHub/githubrepository/Social-Network-Analysis-in-R/uddudd.csv", sep = ",", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
+rel.udd        <- rel.udd[(rel.udd$ORG == "") ==FALSE, ]
+
+### Adding attributes to nodes
+
+#party
+parti.mat    <- unique(cbind(rel.udd$NAVN, rel.udd$PARTI))
+parti        <- parti.mat[order(parti.mat[,1]), 2]
+
+#education
+udd.mat    <- unique(cbind(rel.udd$NAVN, rel.udd$UDD))
+udd       <- udd.mat[order(udd.mat[,1]), 2]
+
+
+### Creating an edge affiliation list  
+navn.udd    <- data.frame(name = rel.udd$NAVN, org = rel.udd$ORG)
+navn.udd
+
+### creating an incidence matrix - also known as case - affiliation matrix
+inc.matrixudd        <- table(navn.udd)
+inc.matrixudd
+
+
+
+### Creating an individual * individual adjacency matrix 
+adj.indudd           <- inc.matrixudd %*% t(inc.matrixudd)
+adj.indudd
+
+
+## Making a one-mode graph for relation between individuals
+graph.indudd               <- graph.adjacency(adj.indudd, mode = "undirected", weighted = TRUE)
+
+
+# removing loops or self ties
+graph.indudd              <- graph.adjacency(adj.indudd, mode = "undirected", weighted = TRUE, diag = FALSE)
+
+
+### writing an edgelust
+edgelistudd <- get.edgelist(graph.indudd)
+write.csv(edgelistudd, file="edgelistudd.csv", fileEncoding = "UTF-8")
+edgelistudd
+
+
+
+
+### Making the graph
+
+# Choosing layout (Fruchterman Reingld algorithm)
+lay.org      <- layout.fruchterman.reingold(graph.indudd)
+
+
+# Creating a graph with the color representing the parties and "alpha" representing number of years politicians have been oficially students at institution together
+alleparti  <- graph.plot(graph.indudd,layout=lay.org, text = FALSE, edge.alpha = E(graph.indudd)$weight, edge.color = "darkblue", text.size = 4, vertex.size = 5,  vertex.fill = as.factor(parti)) +
+  scale_alpha_continuous(range= c(0.1,0.8)) + scale_fill_manual(values = c("white", "green", "salmon", "red4", "goldenrod1", "lightskyblue", "magenta", "goldenrod4", "red"))
+
+# Creating the graph with the color representing educational background (Categories are in Danish)
+alleudd  <- graph.plot(graph.indudd,layout=lay.org, text = FALSE, edge.alpha = E(graph.indudd)$weight, edge.color = "darkblue", text.size = 4, vertex.size = 5,  vertex.fill = as.factor(udd)) +
+  scale_alpha_continuous(range= c(0.1,0.8)) 
+
+
+### Basic network measurements
+
+#degree centrality
+as.matrix(sort(degree(graph.indudd)))
+plot(sort(degree(graph.indudd)))
+
+#closeness centrality
+as.matrix(sort(closeness(graph.indudd)))
+plot(sort(closeness(graph.indudd)))
+
+
+#betweeness centrality
+as.matrix(sort(betweenness(graph.indudd)))
+plot(sort(betweeness(graph.indudd)))
+
+#eigenvector centrality
+evcent.indudd <- evcent(graph.indudd)
+as.matrix(sort(evcent.indudd$vector))
+
+# density
+graph.density(graph.indudd)
+
+# degree centralization
+centralization.degree (graph.indudd) 
+
+# transitivity
+transitivity(graph.indudd)
+
+
+# components and number of individls in each component
+components.indudd <- clusters(graph.indudd)
+as.matrix(sort(components.indudd$csize))
+
+
+
